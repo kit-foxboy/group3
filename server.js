@@ -1,16 +1,21 @@
+// Dependencies
 require("dotenv").config();
 var express = require("express");
 var exphbs = require("express-handlebars");
 
-var db = require("./models");
-
-var app = express();
+// Server
+var app = require("express")();
+var http = require("http").Server(app);
+var io = require("socket.io")(http);
 var PORT = process.env.PORT || 3000;
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 app.use(express.static("public"));
+
+// Data Model
+var db = require("./models");
 
 // Handlebars
 app.engine(
@@ -33,11 +38,23 @@ if (process.env.NODE_ENV === "test") {
   syncOptions.force = true;
 }
 
-// Starting the server, syncing our models ------------------------------------/
+// Sync database and start server
 db.sequelize.sync(syncOptions).then(function() {
-  app.listen(PORT, function() {
+  
+  // Handle incoming socket connections
+  io.on("connection", function(socket) {
+    console.log("New player joined.");
+
+    // Handle user disconnect
+    socket.on("disconnect", function() {
+      console.log("Player has left.");
+    });
+  });
+
+  // Start http server
+  http.listen(PORT, function() {
     console.log(
-      "==> 🌎  Listening on port %s. Visit http://localhost:%s/ in your browser.",
+      "==> 🌎  HTTP server listening on port %s. Visit http://localhost:%s/ in your browser.",
       PORT,
       PORT
     );
