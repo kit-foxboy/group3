@@ -1,6 +1,6 @@
 CREATE DATABASE bomber;
 
-USE Bomber;
+USE bomber;
 
 CREATE TABLE charactercreation(
     id INT NOT NULL AUTO_INCREMENT,

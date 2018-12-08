@@ -1,4 +1,4 @@
-USE bomber_db;
+USE bomber;
 
 INSERT INTO charactercreation (charactername) VALUES ('Swiss Miss');
 INSERT INTO charactercreation (characterleve) VALUES ('30');
