@@ -1,14 +1,13 @@
+DROP DATABASE IF EXISTS bomber;
 CREATE DATABASE bomber;
 
 USE Bomber;
 
-CREATE TABLE charactercreation(
+CREATE TABLE players(
     id INT NOT NULL AUTO_INCREMENT,
-    playerhashkey VARCHAR (200) NOT NULL,
-    charactername VARCHAR(200) NOT NULL,
-    characterlevel VARCHAR(200) NOT NULL,
-    -- username VARCHAR(200) NOT NUll,
-    -- userpassword VARCHAR (10) NOT NULL,
-    score VARCHAR (100) NOT NULL,
+    playerHashkey VARCHAR (200) NOT NULL,
+    playerName VARCHAR(200) NOT NULL,
+    currentScore INT NOT NULL,
+    highScore INT NOT NULL,
     PRIMARY KEY(id)
 )
