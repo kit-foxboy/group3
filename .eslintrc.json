@@ -9,6 +9,7 @@
         "prettier"
       ],
     "rules": {
+        "quote-props": "off",
         "no-duplicate-case":"error",
         "no-empty":"error",
         "no-extra-semi":"error",
