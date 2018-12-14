@@ -6,9 +6,11 @@ var exphbs = require("express-handlebars");
 // Server
 var app = require("express")();
 var http = require("http").Server(app);
-var io = require("socket.io")(http);
+serverSocket = require("socket.io")(http);
 var PORT = process.env.PORT || 3000;
-var CONST = require("./constants");
+// var CONST = require("./constants");
+var Lobby = require("./lobby");
+var Play = require("./play");
 
 // Middleware
 app.use(express.urlencoded({ extended: false }));
@@ -43,31 +45,26 @@ if (process.env.NODE_ENV === "test") {
 db.sequelize.sync(syncOptions).then(function() {
   
   // Handle incoming socket connections
-  io.on("connection", function(socket) {
-    console.log("New connection established.");
-
-    // Handle user disconnect
-    socket.on(CONST.DISCONNECT, function() {
-      console.log("Connection terminated.");
-    });
-
-    // Handle game input
-    socket.on(CONST.PLAYER_LEFT, function(conn) {
-      console.log("player moved left", conn);
-    });
-    socket.on(CONST.PLAYER_RIGHT, function(conn) {
-      console.log("player moved right"), conn;
-    });
-    socket.on(CONST.PLAYER_UP, function(conn) {
-      console.log("player moved up", conn);
-    });
-    socket.on(CONST.PLAYER_DOWN, function(conn) {
-      console.log("player moved down", conn);
-    });
-    socket.on(CONST.DROP_BOMB, function(conn) {
-      console.log("player dropped a bomb", conn);
-    });
-
+  serverSocket.on("connection", function(client) {
+    console.log("New player has connected: " + client.id);
+  
+    client.on("enter lobby", Lobby.onEnterLobby);
+    client.on("leave lobby", Lobby.onLeaveLobby);
+    client.on("create game", Lobby.onCreateGame);
+  
+    client.on("enter pending game", Lobby.onEnterPendingGame);
+    client.on("leave pending game", Lobby.onLeavePendingGame);
+  
+    client.on("start game", Play.onStartGame);
+  
+    client.on("update player position", Play.updatePlayerPosition);
+    client.on("create bomb", Play.createBomb);
+    client.on("pick up spoil", Play.onPickUpSpoil);
+  
+    client.on("player died", Play.onPlayerDied);
+    client.on("leave game", Play.onLeaveGame);
+  
+    client.on("disconnect", onClientDisconnect);
   });
 
   // Start http server
@@ -79,5 +76,19 @@ db.sequelize.sync(syncOptions).then(function() {
     );
   });
 });
+
+function onClientDisconnect() {
+  if (this.socket_game_id === null) {
+    console.log("Player was not be inside any game...");
+    return;
+  }
+  console.log("Player was inside game...");
+
+  // If game is pending then use Lobby.
+  Lobby.onLeavePendingGame.call(this);
+
+  // If game is non-pending then use Play.
+  Play.onDisconnectFromGame.call(this);
+}
 
 module.exports = app;
